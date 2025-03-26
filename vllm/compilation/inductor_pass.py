@@ -21,25 +21,23 @@ else:
 
 class InductorPass(CustomGraphPass):
     """
-    A custom graph pass that uses a hash of its source as the UUID.
-    This is defined as a convenience and should work in most cases.
+    这是一个自定义图传递（graph pass），它使用其源代码的哈希值作为 UUID。  
+    这被定义为一种便利的方式，在大多数情况下应该可以正常工作。
     """
 
     def uuid(self) -> Any:
         """
-        Provide a unique identifier for the pass, used in Inductor code cache.
-        This should depend on the pass implementation, so that changes to the
-        pass result in recompilation.
-        By default, the object source is hashed.
+        为该传递（pass）提供一个唯一的标识符，用于 Inductor 代码缓存中。  
+        该标识符应当依赖于传递的实现，以便在传递发生变化时触发重新编译。  
+        默认情况下，会对对象的源代码进行哈希处理。
         """
         return InductorPass.hash_source(self)
 
     @staticmethod
     def hash_source(*srcs: Union[str, Any]):
-        """
-        Utility method to hash the sources of functions or objects.
-        :param srcs: strings or objects to add to the hash.
-        Objects and functions have their source inspected.
+        """用于对函数或对象的源代码进行哈希处理的工具方法。  
+        - **参数**：  
+        - `srcs`：要加入哈希的字符串或对象。对象和函数会检查其源代码。
         :return:
         """
         hasher = hashlib.sha256()

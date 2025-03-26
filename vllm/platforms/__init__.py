@@ -202,10 +202,21 @@ builtin_platform_plugins = {
 
 
 def resolve_current_platform_cls_qualname() -> str:
+    '''主要功能是确定当前可用的平台插件，并返回相应平台类的限定名称。'''
+    # 加载平台插件
+    # 调用 load_plugins_by_group 函数，加载所有以 vllm.platform_plugins 为组的插件。
+    # 返回的 platform_plugins 是一个字典，键为插件名称，值为插件对应的可调用对象。
     platform_plugins = load_plugins_by_group('vllm.platform_plugins')
 
     activated_plugins = []
 
+    # 遍历内置和外部插件
+    # - 使用 chain 函数将内置平台插件 builtin_platform_plugins 和外部加载的
+    #   平台插件 platform_plugins 合并为一个迭代器。
+    # - 遍历每个插件，确保其为可调用对象。
+    # - 调用插件函数 func()，如果返回的平台类限定名称不为 None，则将该插件
+    #   名称添加到 activated_plugins 列表中。
+    # - 捕获并忽略所有异常，确保某个插件出错不会影响其他插件的检查。
     for name, func in chain(builtin_platform_plugins.items(),
                             platform_plugins.items()):
         try:
@@ -216,11 +227,19 @@ def resolve_current_platform_cls_qualname() -> str:
         except Exception:
             pass
 
+    # 分离激活的内置和外部插件
+    # 使用集合操作分离激活的内置插件和外部插件，分别存储在 
+    # activated_builtin_plugins 和 activated_oot_plugins 列表中。
     activated_builtin_plugins = list(
         set(activated_plugins) & set(builtin_platform_plugins.keys()))
     activated_oot_plugins = list(
         set(activated_plugins) & set(platform_plugins.keys()))
 
+    # 处理激活的外部插件
+    # - 如果激活的外部插件数量大于等于 2，则抛出 RuntimeError 异常，
+    #   因为只允许激活一个平台插件。
+    # - 如果激活的外部插件数量为 1，则调用该插件函数获取平台类限定名称，
+    #   并记录日志。
     if len(activated_oot_plugins) >= 2:
         raise RuntimeError(
             "Only one platform plugin can be activated, but got: "
@@ -229,6 +248,11 @@ def resolve_current_platform_cls_qualname() -> str:
         platform_cls_qualname = platform_plugins[activated_oot_plugins[0]]()
         logger.info("Platform plugin %s is activated",
                     activated_oot_plugins[0])
+    # 处理激活的内置插件
+    # - 如果激活的内置插件数量大于等于 2，则抛出 RuntimeError 异常，
+    #   因为只允许激活一个平台插件。
+    # - 如果激活的内置插件数量为 1，则调用该插件函数获取平台类限定名称，
+    #   并记录日志。
     elif len(activated_builtin_plugins) >= 2:
         raise RuntimeError(
             "Only one platform plugin can be activated, but got: "
@@ -238,6 +262,9 @@ def resolve_current_platform_cls_qualname() -> str:
             activated_builtin_plugins[0]]()
         logger.info("Automatically detected platform %s.",
                     activated_builtin_plugins[0])
+    # 处理未激活的插件
+    # 如果没有检测到任何激活的插件，则将平台类限定名称设置为 
+    # vllm.platforms.interface.UnspecifiedPlatform，并记录日志。
     else:
         platform_cls_qualname = "vllm.platforms.interface.UnspecifiedPlatform"
         logger.info(
@@ -254,17 +281,15 @@ if TYPE_CHECKING:
 
 def __getattr__(name: str):
     if name == 'current_platform':
-        # lazy init current_platform.
-        # 1. out-of-tree platform plugins need `from vllm.platforms import
-        #    Platform` so that they can inherit `Platform` class. Therefore,
-        #    we cannot resolve `current_platform` during the import of
-        #    `vllm.platforms`.
-        # 2. when users use out-of-tree platform plugins, they might run
-        #    `import vllm`, some vllm internal code might access
-        #    `current_platform` during the import, and we need to make sure
-        #    `current_platform` is only resolved after the plugins are loaded
-        #    (we have tests for this, if any developer violate this, they will
-        #    see the test failures).
+        # 延迟初始化`current_platform`。
+        #
+        # 1. 树外（out-of-tree）平台插件需要通过`from vllm.platforms import Platform`
+        #   来继承`Platform`类。因此，我们不能在导入`vllm.platforms`时解析
+        #   `current_platform`。
+        # 2. 当用户使用树外平台插件时，他们可能会运行`import vllm`。在导入过程中，
+        #   某些 vllm 内部代码可能会访问`current_platform`，而我们需要确保
+        #   `current_platform`仅在插件加载完成后才被解析（我们对此有测试，
+        #   如果任何开发人员违反了这一点，他们将会看到测试失败）。
         global _current_platform
         if _current_platform is None:
             platform_cls_qualname = resolve_current_platform_cls_qualname()

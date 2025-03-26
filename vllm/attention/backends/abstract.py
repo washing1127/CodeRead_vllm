@@ -32,10 +32,9 @@ class AttentionType:
 
 
 class AttentionBackend(ABC):
-    """Abstract class for attention backends."""
-    # For some attention backends, we allocate an output tensor before
-    # calling the custom op. When piecewise cudagraph is enabled, this
-    # makes sure the output tensor is allocated inside the cudagraph.
+    """attention 后端的抽象类。"""
+    # 对于某些注意力后端，我们在调用自定义操作（custom op）之前会分配一个输出张量。
+    # 当启用分段 CUDA 图（piecewise cudagraph）时，这可以确保输出张量在 CUDA 图内部被分配。
     accept_output_buffer: bool = False
 
     @staticmethod

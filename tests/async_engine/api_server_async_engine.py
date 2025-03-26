@@ -31,7 +31,7 @@ class AsyncLLMEngineWithStats(AsyncLLMEngine):
 
 @app.get("/stats")
 def stats() -> Response:
-    """Get the statistics of the engine."""
+    """获取引擎的统计信息。"""
     return JSONResponse(engine.testing_stats())
 
 

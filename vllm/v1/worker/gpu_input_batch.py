@@ -68,10 +68,10 @@ class InputBatch:
         self._req_ids: list[Optional[str]] = []
         self.req_id_to_index: dict[str, int] = {}
 
-        # TODO(woosuk): This buffer could be too large if max_model_len is big.
-        # Find a way to reduce the CPU memory usage.
-        # This buffer is not directly transferred to the GPU, so it does not
-        # need to be pinned.
+        # TODO(woosuk): 如果`max_model_len`很大，这个缓冲区可能会变得过大。
+        # 需要找到一种方法来减少CPU内存的使用量。  
+        #
+        # 这个缓冲区不会直接传输到GPU，因此不需要固定（pinned）。
         self.token_ids_cpu_tensor = torch.zeros(
             (max_num_reqs, max_model_len),
             device="cpu",

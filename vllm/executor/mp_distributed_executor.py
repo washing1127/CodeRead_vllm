@@ -22,14 +22,13 @@ logger = init_logger(__name__)
 
 
 class MultiprocessingDistributedExecutor(DistributedExecutorBase):
-    """Python multiprocessing-based distributed executor"""
+    """基于 Python 多进程的分布式执行器。"""
 
     uses_ray: bool = False
 
     def _check_cuda(self) -> None:
-        """Check that the number of GPUs is sufficient for the parallel
-        configuration. Separate from _init_executor to reduce the number of
-        indented blocks.
+        """检查 GPU 的数量是否足以满足并行配置的要求。
+        将其与 `_init_executor` 分开，以减少嵌套代码块的数量。
         """
         parallel_config = self.parallel_config
         world_size = parallel_config.world_size
@@ -151,13 +150,13 @@ class MultiprocessingDistributedExecutor(DistributedExecutorBase):
         max_concurrent_workers: Optional[int] = None,
         **kwargs,
     ) -> List[Any]:
-        """Runs the given method on all workers.
+        """在所有 worker 上运行给定的方法。
 
-        Args:
-            async_run_tensor_parallel_workers_only: If True the method will be
-                run only in the remote TP workers, not the driver worker.
-                It will also be run asynchronously and return a list of futures
-                rather than blocking on the results.
+        参数：
+        - `async_run_tensor_parallel_workers_only`：如果为`True`，则该方法
+        仅在远程张量并行（TP）worker 中运行，而不是在驱动程序 worker 中运行。
+        此外，它将以异步方式运行，并返回一个包含未来对象（futures）的列表，
+        而不是阻塞等待结果。
         """
         if isinstance(method, str):
             sent_method = method

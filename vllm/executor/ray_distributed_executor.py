@@ -49,7 +49,7 @@ class RayWorkerMetaData:
 
 
 class RayDistributedExecutor(DistributedExecutorBase):
-    """Ray-based distributed executor"""
+    """基于 Ray 的分布式执行器"""
 
     # These env vars are worker-specific, therefore are NOT copied
     # from the driver to the workers

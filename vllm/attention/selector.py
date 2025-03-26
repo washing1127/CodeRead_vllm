@@ -87,11 +87,9 @@ def get_attn_backend(
     is_blocksparse: bool = False,
     use_mla: bool = False,
 ) -> Type[AttentionBackend]:
-    """Selects which attention backend to use and lazily imports it."""
-    # Accessing envs.* behind an @lru_cache decorator can cause the wrong
-    # value to be returned from the cache if the value changes between calls.
-    # To avoid this, we read envs.VLLM_USE_V1 here and pass it explicitly to the
-    # private function.
+    """选择 attention 后端，并延迟加载。"""
+    # 在`@lru_cache`装饰器后面访问`envs.*`可能会导致在两次调用之间值发生变化时，从缓存中返回错误的值。
+    # 为了避免这种情况，我们在这里读取`envs.VLLM_USE_V1`，并将其显式传递给私有函数。
     return _cached_get_attn_backend(
         head_size=head_size,
         dtype=dtype,
@@ -121,30 +119,27 @@ def _cached_get_attn_backend(
             BlocksparseFlashAttentionBackend)
         return BlocksparseFlashAttentionBackend
 
-    # If there are no attention layers (e.g. we are running Mamba),
-    # use the placeholder NO_ATTENTION
+    # 如果没有注意力层（例如，我们正在运行 Mamba），则使用占位符`NO_ATTENTION`。
     if is_attention_free:
         from vllm.attention.backends.placeholder_attn import (
             PlaceholderAttentionBackend)
         return PlaceholderAttentionBackend
 
-    # Check whether a particular choice of backend was
-    # previously forced.
+    # 检查是否之前曾经强制指定了某个特定的后端选项。
     #
-    # THIS SELECTION OVERRIDES THE VLLM_ATTENTION_BACKEND
-    # ENVIRONMENT VARIABLE.
+    # 此选择将覆盖`VLLM_ATTENTION_BACKEND`环境变量。
     selected_backend = None
     backend_by_global_setting: Optional[_Backend] = (
         get_global_forced_attn_backend())
     if backend_by_global_setting is not None:
         selected_backend = backend_by_global_setting
     else:
-        # Check the environment variable and override if specified
+        # 检查环境变量，并在指定时覆盖。
         backend_by_env_var: Optional[str] = envs.VLLM_ATTENTION_BACKEND
         if backend_by_env_var is not None:
             selected_backend = backend_name_to_enum(backend_by_env_var)
 
-    # get device-specific attn_backend
+    # 获取特定设备的`attn_backend`（注意力后端）。
     attention_cls = current_platform.get_attn_backend_cls(
         selected_backend, head_size, dtype, kv_cache_dtype, block_size, use_v1,
         use_mla)

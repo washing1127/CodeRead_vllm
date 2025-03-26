@@ -1899,7 +1899,7 @@ def direct_register_custom_op(
 
 def resolve_obj_by_qualname(qualname: str) -> Any:
     """
-    Resolve an object by its fully qualified name.
+    通过其完全限定名称解析一个对象。
     """
     module_name, obj_name = qualname.rsplit(".", 1)
     module = importlib.import_module(module_name)

@@ -3293,8 +3293,7 @@ class CompilationConfig(BaseModel):
 
 @dataclass
 class VllmConfig:
-    """Dataclass which contains all vllm-related configuration. This
-    simplifies passing around the distinct configurations in the codebase.
+    """这是一个包含所有与vLLM（可能是某种大规模语言模型）相关配置的`dataclass`。它简化了在代码库中传递不同配置的过程。
     """
 
     model_config: ModelConfig = field(default=None, init=True)  # type: ignore

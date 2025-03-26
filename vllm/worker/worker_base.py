@@ -30,9 +30,8 @@ logger = init_logger(__name__)
 
 @warn_for_unimplemented_methods
 class WorkerBase:
-    """Worker interface that allows vLLM to cleanly separate implementations for
-    different hardware. Also abstracts control plane communication, e.g., to
-    communicate request metadata to other workers.
+    """Worker 接口，允许 vLLM 清晰地分离针对不同硬件的实现。
+    同时，它还抽象了控制平面通信，例如用于将请求元数据传递给其他工作进程。
     """
 
     def __init__(

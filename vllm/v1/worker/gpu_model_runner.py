@@ -53,7 +53,7 @@ logger = init_logger(__name__)
 
 
 class GPUModelRunner(LoRAModelRunnerMixin):
-
+    '''gpu_worker 中的 model_runner，负责模型加载、运行和其他的一些细节操作。'''
     def __init__(
         self,
         vllm_config: VllmConfig,
@@ -83,8 +83,8 @@ class GPUModelRunner(LoRAModelRunnerMixin):
             self.kv_cache_dtype = STR_DTYPE_TO_TORCH_DTYPE[
                 cache_config.cache_dtype]
 
-        # NOTE(woosuk): sliding_window is None for models with interleaved
-        # attention. Use interleaved_sliding_window instead.
+        # NOTE(woosuk): 对于具有交错注意力（interleaved attention）的模型，`sliding_window` 应该为 `None`。
+        # 请改用 `interleaved_sliding_window`。
         self.sliding_window = model_config.get_sliding_window()
         self.interleaved_sliding_window = getattr(
             model_config.hf_text_config, "interleaved_sliding_window", None)
@@ -180,10 +180,10 @@ class GPUModelRunner(LoRAModelRunnerMixin):
         self.use_cuda_graph = (self.vllm_config.compilation_config.level
                                == CompilationLevel.PIECEWISE
                                and not self.model_config.enforce_eager)
-        # TODO(woosuk): Provide an option to tune the max cudagraph batch size.
-        # The convention is different.
-        # self.cudagraph_batch_sizes sorts in ascending order.
-        # The batch sizes in the config are in descending order.
+        # TODO(woosuk): 提供一个选项来调整最大 CUDA 图批量大小。  
+        # 这里的约定是不同的。  
+        # `self.cudagraph_batch_sizes` 是按升序排列的，  
+        # 而配置中的批量大小是按降序排列的。
         self.cudagraph_batch_sizes = list(
             reversed(
                 self.vllm_config.compilation_config.cudagraph_capture_sizes))
